@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "id": 1,
+      "name": "News",
+      "opened": true,
+      "feeds": []
+    },
+    {
+      "id": 3,
+      "name": "Misc",
+      "opened": false,
+      "feeds": []
+    }
+  ]
+}
