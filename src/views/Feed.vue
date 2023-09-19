@@ -19,29 +19,15 @@
       <div id="container">
         <strong class="capitalize">{{ $route.params.name }} ({{ $route.params.id }})</strong>
         <ion-list>
-          <ion-item-sliding @ionDrag="(ev: CustomEvent) => itemDragged(ev, 1)">
+          <ion-item-sliding v-for="item in getItemsForFolder($route.params.id)"
+            @ionDrag="(ev: CustomEvent) => itemDragged(ev, 1)">
             <ion-item-options side="start">
               <ion-item-option color="success">Browser</ion-item-option>
             </ion-item-options>
 
             <ion-item>
               <ion-label>
-                Patreon-Kreative können jetzt Podcasts auf Spotify veröffentlichen, die nur für Abonnenten bestimmt sind
-              </ion-label>
-            </ion-item>
-
-            <ion-item-options side="end">
-              <ion-item-option color="success">Star</ion-item-option>
-            </ion-item-options>
-          </ion-item-sliding>
-          <ion-item-sliding @ionDrag="(ev: CustomEvent) => itemDragged(ev, 2)">
-            <ion-item-options side="start">
-              <ion-item-option color="success">Browser</ion-item-option>
-            </ion-item-options>
-
-            <ion-item>
-              <ion-label>
-                Game of Thrones: Könnte Davos im Spin-off Snow dabei sein?
+                {{ item.title }}
               </ion-label>
             </ion-item>
 
@@ -56,7 +42,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+import { useFeedsStore } from '../store'
+
+const store = useFeedsStore()
+const { getItemsForFolder } = storeToRefs(store)
 
 function handleScroll(ev: CustomEvent) {
   console.log('scroll', JSON.stringify(ev.detail));
@@ -65,6 +57,7 @@ function handleScroll(ev: CustomEvent) {
 function itemDragged(event: CustomEvent, id: Number) {
   if (Math.abs(event.detail.ratio) > 0.9) {
     setTimeout(() => {
+      // @ts-ignore
       event.target.close();
       if (event.detail.ratio < 0) {
         console.log("Browser " + id);

@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'ncreader-ionic',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
   }
 };
 

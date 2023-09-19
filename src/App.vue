@@ -43,29 +43,33 @@ import {
   paperPlaneSharp,
 } from 'ionicons/icons';
 
+import * as feeds from './mocks/feeds.json';
+import * as folders from './mocks/folders.json';
+import * as items from './mocks/items.json';
+import { useFeedsStore } from './store'
+
 const menu = ref();
 const selectedIndex = ref(0);
 
 onMounted(() => { menu.value.$el.open(false) })
 
-const appPages = [
-  {
-    title: 'News',
-    url: '/feed/News/1',
-    iosIcon: mailOutline,
-    mdIcon: mailSharp,
-  },
-  {
-    title: 'Misc',
-    url: '/feed/Misc/3',
-    iosIcon: paperPlaneOutline,
-    mdIcon: paperPlaneSharp,
-  },
-];
 
-const { pathname } = window.location;
+const store = useFeedsStore()
+
+store.setFeeds(feeds.feeds);
+store.setFolders(folders.folders);
+// @ts-ignore
+store.setItems(items.items);
+
+const appPages = folders.folders.map(folder => ({
+  title: folder.name,
+  url: `/feed/${folder.name}/${folder.id}`,
+  iosIcon: mailOutline,
+  mdIcon: mailSharp,
+}))
+
+const { pathname } = window.location
 if (pathname !== undefined) {
-  console.log(appPages.findIndex((page) => page.url === pathname))
   selectedIndex.value = appPages.findIndex((page) => page.url === pathname);
 }
 </script>
