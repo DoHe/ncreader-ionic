@@ -17,24 +17,8 @@
       </ion-header>
 
       <div id="container">
-        <strong class="capitalize">{{ $route.params.name }} ({{ $route.params.id }})</strong>
         <ion-list>
-          <ion-item-sliding v-for="item in getItemsForFolder($route.params.id)"
-            @ionDrag="(ev: CustomEvent) => itemDragged(ev, 1)">
-            <ion-item-options side="start">
-              <ion-item-option color="success">Browser</ion-item-option>
-            </ion-item-options>
-
-            <ion-item>
-              <ion-label>
-                {{ item.title }}
-              </ion-label>
-            </ion-item>
-
-            <ion-item-options side="end">
-              <ion-item-option color="success">Star</ion-item-option>
-            </ion-item-options>
-          </ion-item-sliding>
+          <FeedItem :item="item" v-for="item in items" />
         </ion-list>
       </div>
     </ion-content>
@@ -43,12 +27,30 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { storeToRefs } from 'pinia'
-import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
-import { useFeedsStore } from '../store'
+import {
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonMenuButton,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonList,
+} from '@ionic/vue';
+import { useFeedsStore, Item } from '../store'
+import { useRoute } from 'vue-router';
+import FeedItem from '../components/FeedItem.vue';
 
-const store = useFeedsStore()
-const { getItemsForFolder } = storeToRefs(store)
+const route = useRoute();
+const store = useFeedsStore();
+
+const items = computed(() => {
+  let items: Array<Item> = []
+  if (route.params.type === 'folder') {
+    items = store.getItemsForFolder(route.params.id)
+  }
+  return items
+})
 
 function handleScroll(ev: CustomEvent) {
   console.log('scroll', JSON.stringify(ev.detail));
@@ -71,24 +73,5 @@ function itemDragged(event: CustomEvent, id: Number) {
 </script>
 
 <style scoped>
-#container {
-  text-align: center;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-  color: #8c8c8c;
-  margin: 0;
-}
+#container {}
 </style>

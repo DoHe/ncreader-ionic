@@ -61,3 +61,5 @@ export const useFeedsStore = defineStore('feeds', {
     },
   },
 })
+
+export type { Item }

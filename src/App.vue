@@ -2,7 +2,7 @@
   <ion-app>
     <ion-menu ref="menu" content-id="main-content" type="overlay">
       <ion-content>
-        <ion-list id="inbox-list">
+        <ion-list id="feeds-list">
           <ion-list-header>
             <ion-label>
               <h1>Feeds</h1>
@@ -39,8 +39,6 @@ import { ref, onMounted } from 'vue';
 import {
   mailOutline,
   mailSharp,
-  paperPlaneOutline,
-  paperPlaneSharp,
 } from 'ionicons/icons';
 
 import * as feeds from './mocks/feeds.json';
@@ -63,7 +61,7 @@ store.setItems(items.items);
 
 const appPages = folders.folders.map(folder => ({
   title: folder.name,
-  url: `/feed/${folder.name}/${folder.id}`,
+  url: `/feed/folder/${folder.name}/${folder.id}`,
   iosIcon: mailOutline,
   mdIcon: mailSharp,
 }))
