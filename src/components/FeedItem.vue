@@ -5,7 +5,7 @@
     </ion-item-options>
 
     <ion-item>
-      <div class="horizontal-container">
+      <div class="vertical-container">
         <div class="top">
           <div class="left-side">
             <span>
@@ -17,12 +17,14 @@
             </span>
           </div>
           <div class="right-side">
-            <ion-img v-if="item.enclosureLink" class="image" :src="item.enclosureLink" />
+            <ion-img v-if="item.previewImageURL" class="image" :src="item.previewImageURL" />
             <div v-else class="image"></div>
           </div>
         </div>
         <div class="bottom">
-          {{ item.pubDate }} {{ item.starred }}
+          <ion-img v-if="item.feedFavicon" class="favicon" :src="item.feedFavicon" />
+          <ion-label>{{ moment(item.pubDate * 1000).fromNow(true) }}</ion-label>
+          <ion-icon :ios="starOutline" :md="star" aria-label="Starred" v-if="item.starred" class="star"></ion-icon>
         </div>
       </div>
     </ion-item>
@@ -36,16 +38,22 @@
 <script setup lang="ts">
 import {
   IonImg,
+  IonIcon,
   IonItem,
   IonLabel,
   IonItemOption,
   IonItemOptions,
   IonItemSliding,
 } from '@ionic/vue';
-import { useFeedsStore, Item } from '../store';
+import {
+  star,
+  starOutline,
+} from 'ionicons/icons';
+import moment from 'moment';
+import { MappedItem } from '../store';
 
 const props = defineProps<{
-  item: Item
+  item: MappedItem
 }>()
 const htmlTagsRegex = /(<([^>]+)>)/ig;
 const item = props.item;
@@ -67,10 +75,11 @@ function itemDragged(event: CustomEvent, id: Number) {
 </script>
 
 <style scoped>
-.horizontal-container {
+.vertical-container {
   display: flex;
   flex-direction: column;
   width: 100%;
+  gap: 10px;
 }
 
 .top {
@@ -87,13 +96,18 @@ function itemDragged(event: CustomEvent, id: Number) {
 }
 
 .bottom {
-  display: 'flex';
-  font-style: 'italic';
-  align-items: 'center';
-  margin-top: 'auto';
-  flex-wrap: 'nowrap';
-  flex-direction: 'row';
+  display: flex;
+  font-style: italic;
+  align-items: center;
+  margin-top: auto;
+  flex-wrap: nowrap;
+  flex-direction: row;
   width: 100%;
+  gap: 5px;
+}
+
+.star {
+  margin-left: auto;
 }
 
 .image {
@@ -104,5 +118,10 @@ function itemDragged(event: CustomEvent, id: Number) {
 
 .image::part(image) {
   border-radius: 20px;
+}
+
+.favicon {
+  width: 16px;
+  height: 16px;
 }
 </style>

@@ -28,10 +28,38 @@ type Item = {
   enclosureLink: string,
 }
 
+type MappedItemFields = {
+  feedFavicon: string,
+  feedTitle: string,
+  previewImageURL: string | undefined
+}
+
+type MappedItem = Item & MappedItemFields;
+
 type State = {
   folders: Array<Folder>,
   feeds: Array<Feed>,
   items: Array<Item>,
+}
+
+const imageRegex = /<img[\s\S]*?src="(.*?)"[\s\S]*?>/;
+
+const imageFromBody = (body: string) => {
+  const match = body.match(imageRegex);
+  if (!match || match.length < 1) {
+    return undefined;
+  }
+  return match[1];
+};
+
+function mapItems(items: Array<Item>, feeds: Array<Feed>): Array<MappedItem> {
+  const feedsMap = Object.fromEntries(feeds.map((feed) => [feed.id, feed]));
+  return items.map((item) => ({
+    ...item,
+    feedFavicon: feedsMap[`${item.feedId}`]?.faviconLink,
+    feedTitle: feedsMap[`${item.feedId}`]?.title,
+    previewImageURL: item.enclosureLink || imageFromBody(item.body),
+  }))
 }
 
 export const useFeedsStore = defineStore('feeds', {
@@ -47,8 +75,8 @@ export const useFeedsStore = defineStore('feeds', {
     setFolders(folders: Array<Folder>) {
       this.folders = folders
     },
-    setItems(items: Array<Item>) {
-      this.items = items
+    setItems(items: Array<Item>, feeds: Array<Feed>) {
+      this.items = mapItems(items, feeds)
     },
   },
   getters: {
@@ -62,4 +90,4 @@ export const useFeedsStore = defineStore('feeds', {
   },
 })
 
-export type { Item }
+export type { Item, MappedItem }
