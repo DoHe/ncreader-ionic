@@ -48,11 +48,18 @@ const route = useRoute();
 const store = useFeedsStore();
 
 const items = computed(() => {
-  let items: Array<MappedItem> = []
   if (route.params.type === 'folder') {
-    items = store.getItemsForFolder(route.params.id)
+    return store.getItemsForFolder(route.params.id)
+  } else if (route.params.type === 'feed') {
+    return store.getItemsForFeed(route.params.id)
+  } else if (route.params.type === 'special') {
+    if (route.params.name === 'Starred') {
+      return store.getStarredItems
+    } else if (route.params.name === 'Unread') {
+      return store.getUnreadItems
+    }
   }
-  return items
+  return []
 })
 
 function handleScroll(ev: CustomEvent) {

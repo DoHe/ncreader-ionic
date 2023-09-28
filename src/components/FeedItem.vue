@@ -31,7 +31,9 @@
         </div>
         <div class="bottom">
           <ion-img v-if="item.feedFavicon" class="favicon" :src="item.feedFavicon" />
-          <ion-label>{{ moment(item.pubDate * 1000).fromNow(true) }}</ion-label>
+          <ion-label class="footer" color="medium">
+            {{ item.feedTitle }} · {{ moment(item.pubDate * 1000).fromNow(true) }}
+          </ion-label>
           <ion-icon :ios="starOutline" :md="star" aria-label="Starred" v-if="item.starred" class="star"
             color="warning"></ion-icon>
         </div>
@@ -138,6 +140,10 @@ function itemDragged(event: CustomEvent, id: Number) {
 .favicon {
   width: 16px;
   height: 16px;
+}
+
+.footer {
+  font-size: small;
 }
 
 .title-web {

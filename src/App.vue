@@ -8,13 +8,33 @@
               <h1>Feeds</h1>
             </ion-label>
           </ion-list-header>
-          <ion-menu-toggle :auto-hide="false" v-for="(p, i) in appPages" :key="i">
-            <ion-item @click="selectedIndex = i" router-direction="root" :router-link="p.url" lines="none" :detail="false"
-              class="hydrated" :class="{ selected: selectedIndex === i }">
-              <ion-icon aria-hidden="true" slot="start" :ios="p.iosIcon" :md="p.mdIcon"></ion-icon>
-              <ion-label>{{ p.title }}</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
+
+          <ion-item v-for="(page, i) in specialPages" :key="i" @click="(event) => headerClicked(event, page.url)"
+            router-direction="root" :router-link="page.url" lines="none" :detail="false" class="hydrated"
+            :class="{ selected: selectedPath === page.url }">
+            <ion-icon aria-hidden="true" slot="start" :ios="page.iosIcon" :md="page.mdIcon"></ion-icon>
+            <ion-label>{{ page.title }}</ion-label>
+          </ion-item>
+
+          <ion-accordion-group v-for="(page, i) in folderPages" :key="i + 2">
+            <ion-accordion value="first">
+              <ion-item slot="header" @click="(event) => headerClicked(event, page.url)" router-direction="root"
+                :router-link="page.url" lines="none" :detail="false" class="hydrated"
+                :class="{ selected: selectedPath === page.url }">
+                <ion-icon aria-hidden="true" slot="start" :ios="page.iosIcon" :md="page.mdIcon"></ion-icon>
+                <ion-label>{{ page.title }}</ion-label>
+              </ion-item>
+              <ion-list slot="content">
+                <ion-item v-for="(feed, i) in page.feeds" :key="i" class="feed-item"
+                  @click="(event) => headerClicked(event, feedPath(feed))"
+                  :class="{ selected: selectedPath === feedPath(feed) }" lines="none" :detail="false"
+                  :router-link="feedPath(feed)">
+                  <ion-img :src="feed.faviconLink" class="feed-icon" aria-hidden="true" slot="start"></ion-img>
+                  <ion-label>{{ feed.title }}</ion-label>
+                </ion-item>
+              </ion-list>
+            </ion-accordion>
+          </ion-accordion-group>
         </ion-list>
       </ion-content>
     </ion-menu>
@@ -32,26 +52,42 @@ import {
   IonList,
   IonListHeader,
   IonMenu,
-  IonMenuToggle,
+  IonImg,
   IonRouterOutlet,
 } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
 import {
-  mailOutline,
-  earth,
-  help
+  folderOutline,
+  folder,
+  eyeOutline,
+  eye,
+  starOutline,
+  star
 } from 'ionicons/icons';
 
 import * as feeds from './mocks/feeds.json';
 import * as folders from './mocks/folders.json';
 import * as items from './mocks/items.json';
-import { useFeedsStore } from './store'
+import { useFeedsStore, Feed } from './store'
+
+type SpecialPage = {
+  title: string,
+  url: string,
+  iosIcon: string,
+  mdIcon: string,
+}
+
+type FolderPageFields = {
+  feeds: Array<Feed>
+}
+
+type FolderPage = SpecialPage & FolderPageFields;
 
 const menu = ref();
-const selectedIndex = ref(0);
+const { pathname } = window.location
+const selectedPath = ref(pathname);
 
 onMounted(() => { menu.value.$el.open(false) })
-
 
 const store = useFeedsStore()
 
@@ -60,16 +96,42 @@ store.setFolders(folders.folders);
 // @ts-ignore
 store.setItems(items.items, feeds.feeds);
 
-const appPages = folders.folders.map(folder => ({
-  title: folder.name,
-  url: `/feed/folder/${folder.name}/${folder.id}`,
-  iosIcon: mailOutline,
-  mdIcon: folder.name === 'News' ? earth : help,
-}))
+const specialPages: Array<SpecialPage> = [
+  {
+    title: 'Starred',
+    url: `/feed/special/Starred/0`,
+    iosIcon: starOutline,
+    mdIcon: star,
+  },
+  {
+    title: 'Unread',
+    url: `/feed/special/Unread/0`,
+    iosIcon: eyeOutline,
+    mdIcon: eye,
+  }
+]
+const folderPages: Array<FolderPage> = folders.folders.map(folderData => {
+  const feedsForFolder = feeds.feeds.filter(feed => feed.folderId === folderData.id);
+  return {
+    title: folderData.name,
+    url: `/feed/folder/${folderData.name}/${folderData.id}`,
+    iosIcon: folderOutline,
+    mdIcon: folder,
+    feeds: feedsForFolder,
+  }
+})
 
-const { pathname } = window.location
-if (pathname !== undefined) {
-  selectedIndex.value = appPages.findIndex((page) => page.url === pathname);
+function headerClicked(event: CustomEvent, path: string) {
+  selectedPath.value = path;
+  // @ts-ignore
+  if (event.target.slot !== 'end') {
+    menu.value.$el.close();
+    event.stopPropagation();
+  }
+}
+
+function feedPath(feed: Feed) {
+  return `/feed/feed/${feed.title}/${feed.id}`
 }
 </script>
 
@@ -84,5 +146,14 @@ ion-menu.md ion-item.selected ion-icon {
 
 ion-item.selected {
   --color: var(--ion-color-primary);
+}
+
+.feed-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.feed-item {
+  padding-left: 10px;
 }
 </style>

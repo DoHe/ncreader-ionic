@@ -87,7 +87,19 @@ export const useFeedsStore = defineStore('feeds', {
         return state.items.filter((item) => feedIds.includes(item.feedId));
       }
     },
+    getItemsForFeed: (state) => {
+      return (feedId: string | string[]): Array<MappedItem> => {
+        const id = parseInt(feedId as string, 10);
+        return state.items.filter((item) => item.feedId === id);
+      }
+    },
+    getUnreadItems: (state) => {
+      return state.items.filter((item) => item.unread);
+    },
+    getStarredItems: (state) => {
+      return state.items.filter((item) => item.starred);
+    }
   },
 })
 
-export type { Item, MappedItem }
+export type { Item, MappedItem, Feed }
