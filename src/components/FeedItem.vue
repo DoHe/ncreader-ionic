@@ -1,18 +1,26 @@
 <template>
   <ion-item-sliding @ionDrag="(ev: CustomEvent) => itemDragged(ev, 1)">
     <ion-item-options side="start">
-      <ion-item-option color="success">Browser</ion-item-option>
+      <ion-item-option color="none">
+        <ion-icon slot="icon-only" :ios="earthOutline" :md="earth" aria-label="Browser" color="primary"></ion-icon>
+      </ion-item-option>
     </ion-item-options>
 
     <ion-item>
       <div class="vertical-container">
         <div class="top">
           <div class="left-side">
-            <span>
+            <span :class="{
+              'title-web': !isPlatform('android'),
+              'title-mob': isPlatform('android'),
+            }">
               {{ item.title }}
             </span>
 
-            <span>
+            <span :class="{
+              'body-web': !isPlatform('android'),
+              'body-mob': isPlatform('android'),
+            }">
               {{ body }}
             </span>
           </div>
@@ -24,19 +32,23 @@
         <div class="bottom">
           <ion-img v-if="item.feedFavicon" class="favicon" :src="item.feedFavicon" />
           <ion-label>{{ moment(item.pubDate * 1000).fromNow(true) }}</ion-label>
-          <ion-icon :ios="starOutline" :md="star" aria-label="Starred" v-if="item.starred" class="star"></ion-icon>
+          <ion-icon :ios="starOutline" :md="star" aria-label="Starred" v-if="item.starred" class="star"
+            color="warning"></ion-icon>
         </div>
       </div>
     </ion-item>
 
     <ion-item-options side="end">
-      <ion-item-option color="success">Star</ion-item-option>
+      <ion-item-option color="none">
+        <ion-icon slot="icon-only" :ios="starOutline" :md="star" aria-label="Star" color="warning"></ion-icon>
+      </ion-item-option>
     </ion-item-options>
   </ion-item-sliding>
 </template>
 
 <script setup lang="ts">
 import {
+  isPlatform,
   IonImg,
   IonIcon,
   IonItem,
@@ -46,6 +58,8 @@ import {
   IonItemSliding,
 } from '@ionic/vue';
 import {
+  earth,
+  earthOutline,
   star,
   starOutline,
 } from 'ionicons/icons';
@@ -93,6 +107,7 @@ function itemDragged(event: CustomEvent, id: Number) {
   display: flex;
   flex-shrink: 10;
   flex-direction: column;
+  gap: 10px;
 }
 
 .bottom {
@@ -123,5 +138,39 @@ function itemDragged(event: CustomEvent, id: Number) {
 .favicon {
   width: 16px;
   height: 16px;
+}
+
+.title-web {
+  font-weight: bold;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.title-mob {
+  font-weight: bold;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.body-web {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.body-mob {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 </style>

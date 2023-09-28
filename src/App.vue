@@ -38,8 +38,8 @@ import {
 import { ref, onMounted } from 'vue';
 import {
   mailOutline,
-  mailSharp,
-  star
+  earth,
+  help
 } from 'ionicons/icons';
 
 import * as feeds from './mocks/feeds.json';
@@ -64,7 +64,7 @@ const appPages = folders.folders.map(folder => ({
   title: folder.name,
   url: `/feed/folder/${folder.name}/${folder.id}`,
   iosIcon: mailOutline,
-  mdIcon: star,
+  mdIcon: folder.name === 'News' ? earth : help,
 }))
 
 const { pathname } = window.location

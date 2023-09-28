@@ -39,7 +39,7 @@ type MappedItem = Item & MappedItemFields;
 type State = {
   folders: Array<Folder>,
   feeds: Array<Feed>,
-  items: Array<Item>,
+  items: Array<MappedItem>,
 }
 
 const imageRegex = /<img[\s\S]*?src="(.*?)"[\s\S]*?>/;
@@ -81,7 +81,7 @@ export const useFeedsStore = defineStore('feeds', {
   },
   getters: {
     getItemsForFolder: (state) => {
-      return (folderId: string | string[]): Array<Item> => {
+      return (folderId: string | string[]): Array<MappedItem> => {
         const id = parseInt(folderId as string, 10);
         const feedIds = state.feeds.filter(feed => feed.folderId == id).map(feed => feed.id);
         return state.items.filter((item) => feedIds.includes(item.feedId));

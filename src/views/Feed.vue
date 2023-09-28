@@ -16,9 +16,12 @@
         </ion-toolbar>
       </ion-header>
 
-      <div id="container">
+      <div class="container">
         <ion-list>
-          <FeedItem :item="item" v-for="item in items" />
+          <div v-for="(item, index) in items">
+            <FeedItem :item="item" />
+            <div class="spacer" v-if="index < items.length - 1"></div>
+          </div>
         </ion-list>
       </div>
     </ion-content>
@@ -37,7 +40,7 @@ import {
   IonToolbar,
   IonList,
 } from '@ionic/vue';
-import { useFeedsStore, Item } from '../store'
+import { useFeedsStore, MappedItem } from '../store'
 import { useRoute } from 'vue-router';
 import FeedItem from '../components/FeedItem.vue';
 
@@ -45,7 +48,7 @@ const route = useRoute();
 const store = useFeedsStore();
 
 const items = computed(() => {
-  let items: Array<Item> = []
+  let items: Array<MappedItem> = []
   if (route.params.type === 'folder') {
     items = store.getItemsForFolder(route.params.id)
   }
@@ -73,5 +76,9 @@ function itemDragged(event: CustomEvent, id: Number) {
 </script>
 
 <style scoped>
-#container {}
+.container {}
+
+.spacer {
+  height: 15px;
+}
 </style>
