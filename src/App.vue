@@ -10,7 +10,7 @@
           </ion-list-header>
 
           <ion-item v-for="(page, i) in specialPages" :key="i" @click="(event) => headerClicked(event, page.url)"
-            router-direction="root" :router-link="page.url" lines="none" :detail="false" class="hydrated"
+            router-direction="root" lines="none" :detail="false" class="hydrated"
             :class="{ selected: selectedPath === page.url }">
             <ion-icon aria-hidden="true" slot="start" :ios="page.iosIcon" :md="page.mdIcon"></ion-icon>
             <ion-label>{{ page.title }}</ion-label>
@@ -19,16 +19,14 @@
           <ion-accordion-group v-for="(page, i) in folderPages" :key="i + 2">
             <ion-accordion value="first">
               <ion-item slot="header" @click="(event) => headerClicked(event, page.url)" router-direction="root"
-                :router-link="page.url" lines="none" :detail="false" class="hydrated"
-                :class="{ selected: selectedPath === page.url }">
+                lines="none" :detail="false" class="hydrated" :class="{ selected: selectedPath === page.url }">
                 <ion-icon aria-hidden="true" slot="start" :ios="page.iosIcon" :md="page.mdIcon"></ion-icon>
                 <ion-label>{{ page.title }}</ion-label>
               </ion-item>
               <ion-list slot="content">
                 <ion-item v-for="(feed, i) in page.feeds" :key="i" class="feed-item"
                   @click="(event) => headerClicked(event, feedPath(feed))"
-                  :class="{ selected: selectedPath === feedPath(feed) }" lines="none" :detail="false"
-                  :router-link="feedPath(feed)">
+                  :class="{ selected: selectedPath === feedPath(feed) }" lines="none" :detail="false">
                   <ion-img :src="feed.faviconLink" class="feed-icon" aria-hidden="true" slot="start"></ion-img>
                   <ion-label>{{ feed.title }}</ion-label>
                 </ion-item>
@@ -54,8 +52,10 @@ import {
   IonMenu,
   IonImg,
   IonRouterOutlet,
+  useBackButton,
 } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   folderOutline,
   folder,
@@ -83,17 +83,21 @@ type FolderPageFields = {
 
 type FolderPage = SpecialPage & FolderPageFields;
 
+const router = useRouter();
 const menu = ref();
 const { pathname } = window.location
 const selectedPath = ref(pathname);
 
 onMounted(() => { menu.value.$el.open(false) })
 
+useBackButton(1000, () => {
+  menu.value.$el.toggle();
+});
+
 const store = useFeedsStore()
 
 store.setFeeds(feeds.feeds);
 store.setFolders(folders.folders);
-// @ts-ignore
 store.setItems(items.items, feeds.feeds);
 
 const specialPages: Array<SpecialPage> = [
@@ -125,6 +129,7 @@ function headerClicked(event: CustomEvent, path: string) {
   selectedPath.value = path;
   // @ts-ignore
   if (event.target.slot !== 'end') {
+    router.replace(path);
     menu.value.$el.close();
     event.stopPropagation();
   }

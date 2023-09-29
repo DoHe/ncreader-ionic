@@ -19,13 +19,14 @@ type Item = {
   id: number,
   url: string,
   title: string,
-  author: string,
+  author: string | null,
   pubDate: number,
   body: string,
   feedId: number,
   unread: boolean,
   starred: boolean,
-  enclosureLink: string,
+  enclosureLink: string | null,
+  lastModified: number,
 }
 
 type MappedItemFields = {
@@ -36,10 +37,21 @@ type MappedItemFields = {
 
 type MappedItem = Item & MappedItemFields;
 
-type State = {
+type FeedsState = {
   folders: Array<Folder>,
   feeds: Array<Feed>,
   items: Array<MappedItem>,
+  syncing: boolean,
+}
+
+type Credentials = {
+  username?: string,
+  password?: string,
+  url?: string,
+}
+
+type UserState = {
+  credentials: Credentials,
 }
 
 const imageRegex = /<img[\s\S]*?src="(.*?)"[\s\S]*?>/;
@@ -63,10 +75,11 @@ function mapItems(items: Array<Item>, feeds: Array<Feed>): Array<MappedItem> {
 }
 
 export const useFeedsStore = defineStore('feeds', {
-  state: (): State => ({
+  state: (): FeedsState => ({
     folders: [],
     feeds: [],
     items: [],
+    syncing: false,
   }),
   actions: {
     setFeeds(feeds: Array<Feed>) {
@@ -78,6 +91,9 @@ export const useFeedsStore = defineStore('feeds', {
     setItems(items: Array<Item>, feeds: Array<Feed>) {
       this.items = mapItems(items, feeds)
     },
+    setSyncing(syncing: boolean) {
+      this.syncing = syncing
+    }
   },
   getters: {
     getItemsForFolder: (state) => {
@@ -102,4 +118,17 @@ export const useFeedsStore = defineStore('feeds', {
   },
 })
 
-export type { Item, MappedItem, Feed }
+export const useUserStore = defineStore('user', {
+  state: (): UserState => ({
+    credentials: {},
+  }),
+  actions: {
+    setCredentials(credentials: Credentials) {
+      this.credentials = credentials
+    },
+  },
+})
+
+export type { Item, MappedItem, Feed, Credentials, Folder }
+
+export type FeedStore = ReturnType<typeof useFeedsStore>
