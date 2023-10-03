@@ -149,9 +149,9 @@ const folderPages: ComputedRef<Array<FolderPage>> = computed(() => feedsStore.fo
 }))
 
 function headerClicked(event: CustomEvent, path: string) {
-  selectedPath.value = path;
   // @ts-ignore
   if (event.target.slot !== 'end') {
+    selectedPath.value = path;
     router.replace(path);
     menu.value.$el.close();
     event.stopPropagation();
