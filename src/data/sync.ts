@@ -5,7 +5,7 @@ import feedsMock from '../mocks/feeds.json';
 import {
   syncDataKey, syncStatusKey, syncStatusSynced,
 } from '@/constants';
-import { Credentials, FeedStore, Item, useFeedsStore } from '@/store'
+import { Credentials, FeedStore, Item, useFeedsStore, useUserStore } from '@/store'
 
 import { initialSync, subsequentSync } from './news';
 import { ApiData } from './types';
@@ -32,24 +32,25 @@ function setDataInStore(store: FeedStore, { folders, feeds, items }: ApiData) {
   store.setFeeds(feeds.feeds);
 }
 
-async function sync({
-  mocked, credentials, startup = false,
-}: { mocked: boolean, credentials: Credentials, startup: boolean }) {
+async function sync({ mocked, startup = false }: { mocked: boolean, startup: boolean }) {
   const storage = new Storage();
   await storage.create();
 
-  const store = useFeedsStore()
+  const feedsStore = useFeedsStore()
+  const userStore = useUserStore()
+  const credentials = userStore.credentials;
 
-  store.setSyncing(true);
+  feedsStore.setSyncing(true);
   try {
     if (mocked) {
+      await new Promise(r => setTimeout(r, 2000));
       const data: ApiData = {
         folders: foldersMock,
         feeds: feedsMock,
         items: itemsMock,
       };
       sortData(data);
-      setDataInStore(store, data);
+      setDataInStore(feedsStore, data);
       return;
     }
 
@@ -64,7 +65,7 @@ async function sync({
     if (syncStatus === syncStatusSynced) {
       data = JSON.parse(await storage.get(syncDataKey));
       if (startup) {
-        setDataInStore(store, data);
+        setDataInStore(feedsStore, data);
       }
 
       let lastModified = 0;
@@ -99,7 +100,7 @@ async function sync({
         ? newData.feeds.feeds
         : data.feeds.feeds;
       storage.set(syncDataKey, JSON.stringify(newData));
-      setDataInStore(store, newData);
+      setDataInStore(feedsStore, newData);
     } else {
       data = await initialSync(credentials);
       if (!(data?.folders?.folders?.length > 0)) {
@@ -109,10 +110,10 @@ async function sync({
       storage.set(syncDataKey, JSON.stringify(data));
       storage.set(syncStatusKey, syncStatusSynced);
 
-      setDataInStore(store, data);
+      setDataInStore(feedsStore, data);
     }
   } finally {
-    store.setSyncing(false);
+    feedsStore.setSyncing(false);
   }
 }
 

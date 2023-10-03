@@ -9,6 +9,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/feed/:type/:name/:id',
     component: () => import('../views/Feed.vue')
+  },
+  {
+    path: '/login',
+    component: () => import('../views/Login.vue')
   }
 ]
 

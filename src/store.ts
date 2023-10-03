@@ -127,6 +127,17 @@ export const useUserStore = defineStore('user', {
       this.credentials = credentials
     },
   },
+  getters: {
+    password: (state) => {
+      return state.credentials.password;
+    },
+    username: (state) => {
+      return state.credentials.username;
+    },
+    url: (state) => {
+      return state.credentials.url;
+    },
+  }
 })
 
 export type { Item, MappedItem, Feed, Credentials, Folder }

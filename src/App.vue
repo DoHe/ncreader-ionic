@@ -4,8 +4,10 @@
       <ion-content>
         <ion-list id="feeds-list">
           <ion-list-header>
-            <ion-label>
+            <ion-label class="list-header">
               <h1>Feeds</h1>
+              <ion-icon @click="syncClicked" size="large" :ios="syncOutline" :md="syncIcon" ref="syncIconElement"
+                :disabled="syncing"></ion-icon>
             </ion-label>
           </ion-list-header>
 
@@ -42,6 +44,7 @@
 
 <script setup lang="ts">
 import {
+  createAnimation,
   IonApp,
   IonContent,
   IonIcon,
@@ -54,7 +57,8 @@ import {
   IonRouterOutlet,
   useBackButton,
 } from '@ionic/vue';
-import { ref, onMounted } from 'vue';
+import type { Animation } from '@ionic/vue';
+import { watch, ref, onMounted, computed, ComputedRef } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   folderOutline,
@@ -62,13 +66,14 @@ import {
   eyeOutline,
   eye,
   starOutline,
-  star
+  star,
+  sync as syncIcon,
+  syncOutline,
 } from 'ionicons/icons';
 
-import * as feeds from './mocks/feeds.json';
-import * as folders from './mocks/folders.json';
-import * as items from './mocks/items.json';
-import { useFeedsStore, Feed } from './store'
+import { useFeedsStore, Feed } from './store';
+import sync from './data/sync';
+import { storeToRefs } from 'pinia';
 
 type SpecialPage = {
   title: string,
@@ -84,21 +89,39 @@ type FolderPageFields = {
 type FolderPage = SpecialPage & FolderPageFields;
 
 const router = useRouter();
+const feedsStore = useFeedsStore();
+
+
 const menu = ref();
-const { pathname } = window.location
+const syncIconElement = ref();
+
+const { pathname } = window.location;
 const selectedPath = ref(pathname);
 
-onMounted(() => { menu.value.$el.open(false) })
+let animation: Animation;
+const { syncing } = storeToRefs(feedsStore)
+
+watch(syncing, () => {
+  if (syncing.value) {
+    animation.play();
+  } else {
+    animation.stop();
+  }
+})
+
+onMounted(() => {
+  animation = createAnimation()
+    .addElement(syncIconElement.value.$el)
+    .duration(1000)
+    .iterations(Infinity)
+    .fromTo('transform', 'rotate(0deg)', 'rotate(360deg)');
+  sync({ mocked: true, startup: true })
+  menu.value.$el.open(false)
+})
 
 useBackButton(1000, () => {
   menu.value.$el.toggle();
 });
-
-const store = useFeedsStore()
-
-store.setFeeds(feeds.feeds);
-store.setFolders(folders.folders);
-store.setItems(items.items, feeds.feeds);
 
 const specialPages: Array<SpecialPage> = [
   {
@@ -114,8 +137,8 @@ const specialPages: Array<SpecialPage> = [
     mdIcon: eye,
   }
 ]
-const folderPages: Array<FolderPage> = folders.folders.map(folderData => {
-  const feedsForFolder = feeds.feeds.filter(feed => feed.folderId === folderData.id);
+const folderPages: ComputedRef<Array<FolderPage>> = computed(() => feedsStore.folders.map(folderData => {
+  const feedsForFolder = feedsStore.feeds.filter(feed => feed.folderId === folderData.id);
   return {
     title: folderData.name,
     url: `/feed/folder/${folderData.name}/${folderData.id}`,
@@ -123,7 +146,7 @@ const folderPages: Array<FolderPage> = folders.folders.map(folderData => {
     mdIcon: folder,
     feeds: feedsForFolder,
   }
-})
+}))
 
 function headerClicked(event: CustomEvent, path: string) {
   selectedPath.value = path;
@@ -137,6 +160,12 @@ function headerClicked(event: CustomEvent, path: string) {
 
 function feedPath(feed: Feed) {
   return `/feed/feed/${feed.title}/${feed.id}`
+}
+
+function syncClicked() {
+  if (!syncing.value) {
+    sync({ mocked: true, startup: false })
+  }
 }
 </script>
 
@@ -160,5 +189,12 @@ ion-item.selected {
 
 .feed-item {
   padding-left: 10px;
+}
+
+.list-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-right: 10px;
 }
 </style>
