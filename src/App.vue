@@ -71,9 +71,10 @@ import {
   syncOutline,
 } from 'ionicons/icons';
 
-import { useFeedsStore, Feed } from './store';
+import { useFeedsStore, Feed, useUserStore } from './store';
 import sync from './data/sync';
 import { storeToRefs } from 'pinia';
+import getCredentials from './data/credentials';
 
 type SpecialPage = {
   title: string,
@@ -90,7 +91,7 @@ type FolderPage = SpecialPage & FolderPageFields;
 
 const router = useRouter();
 const feedsStore = useFeedsStore();
-
+const userStore = useUserStore();
 
 const menu = ref();
 const syncIconElement = ref();
@@ -100,6 +101,7 @@ const selectedPath = ref(pathname);
 
 let animation: Animation;
 const { syncing } = storeToRefs(feedsStore)
+const { credentials } = storeToRefs(userStore)
 
 watch(syncing, () => {
   if (syncing.value) {
@@ -109,14 +111,28 @@ watch(syncing, () => {
   }
 })
 
-onMounted(() => {
+watch(credentials, () => {
+  if (credentials.value.password &&
+    credentials.value.username &&
+    credentials.value.url) {
+    sync({ mocked: false, startup: true });
+    menu.value.$el.open(false);
+  }
+})
+
+onMounted(async () => {
   animation = createAnimation()
     .addElement(syncIconElement.value.$el)
     .duration(1000)
     .iterations(Infinity)
     .fromTo('transform', 'rotate(0deg)', 'rotate(360deg)');
-  sync({ mocked: true, startup: true })
-  menu.value.$el.open(false)
+
+  await getCredentials();
+  if (!(credentials.value.password &&
+    credentials.value.username &&
+    credentials.value.url)) {
+    router.replace('/login');
+  }
 })
 
 useBackButton(1000, () => {
@@ -138,7 +154,20 @@ const specialPages: Array<SpecialPage> = [
   }
 ]
 const folderPages: ComputedRef<Array<FolderPage>> = computed(() => feedsStore.folders.map(folderData => {
-  const feedsForFolder = feedsStore.feeds.filter(feed => feed.folderId === folderData.id);
+  const items = feedsStore.items;
+  const feedsForFolder = feedsStore.feeds.filter(feed => {
+    if (feed.folderId !== folderData.id) {
+      return false;
+    }
+    let hasUnread = false;
+    for (const item of items) {
+      if (item.unread && item.feedId === feed.id) {
+        hasUnread = true;
+        break;
+      }
+    }
+    return hasUnread;
+  });
   return {
     title: folderData.name,
     url: `/feed/folder/${folderData.name}/${folderData.id}`,
@@ -146,7 +175,7 @@ const folderPages: ComputedRef<Array<FolderPage>> = computed(() => feedsStore.fo
     mdIcon: folder,
     feeds: feedsForFolder,
   }
-}))
+}).filter(folderPage => folderPage.feeds.length > 0))
 
 function headerClicked(event: CustomEvent, path: string) {
   // @ts-ignore
@@ -164,7 +193,7 @@ function feedPath(feed: Feed) {
 
 function syncClicked() {
   if (!syncing.value) {
-    sync({ mocked: true, startup: false })
+    sync({ mocked: false, startup: false })
   }
 }
 </script>

@@ -9,12 +9,12 @@ async function getCredentials() {
   const storage = new Storage();
   await storage.create();
 
-  const storedValued = await storage.get(credentialsKey);
-  if (!storedValued) {
+  const storedValue = await storage.get(credentialsKey);
+  if (!storedValue) {
     return;
   }
 
-  const storedCredentials: Credentials = JSON.parse(storedValued);
+  const storedCredentials: Credentials = JSON.parse(storedValue);
   if (!(
     storedCredentials.username
     && storedCredentials.password
