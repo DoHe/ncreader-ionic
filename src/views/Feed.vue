@@ -9,7 +9,7 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true" :scroll-events="true" @ionScroll="handleScroll($event)">
+    <ion-content :fullscreen="true" :scroll-events="true" @ionScroll="handleScroll($event)" ref="content">
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">{{ $route.params.name }}</ion-title>
@@ -17,7 +17,7 @@
       </ion-header>
 
       <div class="container">
-        <ion-list ref="listElement">
+        <ion-list>
           <div id="item" v-for="(item, index) in items" ref="itemElements" :data-title="item.title">
             <FeedItem :key="index" :item="item" />
             <div class="spacer" v-if="index < items.length - 1"></div>
@@ -29,8 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from 'vue'
-import type { Ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import {
   IonButtons,
   IonContent,
@@ -64,35 +63,46 @@ const items = computed(() => {
 })
 
 const itemElements = ref([]);
-const listElement = ref();
+const content = ref();
 
+let scrollDirection = 0;
 
 watchEffect(() => {
   if (itemElements.value && itemElements.value.length) {
-    console.log('has length')
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry: any) => {
-        if (entry.isIntersecting) {
-          console.log("became visible:")
-          console.log(entry.target.dataset.title)
-        } else {
-          console.log("became invisble:")
-          console.log(entry.target.dataset.title)
+        if (!entry.isIntersecting && scrollDirection === 1) {
+          //console.log("mark read:")
+          //console.log(entry.target.dataset.title)
 
         }
       });
     }, { root: document });
 
     for (const element of itemElements.value) {
-      console.log(element)
       observer.observe(element);
     }
 
   }
 })
 
-function handleScroll(ev: CustomEvent) {
-  // console.log('scroll', JSON.stringify(ev.detail));
+let lastTimeout: ReturnType<typeof setTimeout>;
+
+async function handleScroll(ev: CustomEvent) {
+  scrollDirection = Math.sign(ev.detail.deltaY);
+  if (lastTimeout) {
+    clearTimeout(lastTimeout)
+  }
+  if (scrollDirection === 1) {
+    // @ts-ignore
+    const scrollElement = await ev.target.getScrollElement()
+
+    const scrollHeight = scrollElement.scrollHeight - scrollElement.clientHeight;
+    if (scrollHeight - scrollElement.scrollTop < 10) {
+      console.log(`Scrolled to bottom`);
+    }
+  }
+  lastTimeout = setTimeout(() => scrollDirection = 0, 200)
 }
 
 function itemDragged(event: CustomEvent, id: Number) {

@@ -4,7 +4,7 @@ import { RouteRecordRaw } from 'vue-router';
 const routes: Array<RouteRecordRaw> = [
   {
     path: '',
-    redirect: '/feed'
+    redirect: '/feed/special/Unread/0'
   },
   {
     path: '/feed/:type/:name/:id',
