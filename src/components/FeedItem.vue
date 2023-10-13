@@ -10,14 +10,14 @@
       <div class="vertical-container">
         <div class="top">
           <div class="left-side">
-            <span :class="{
+            <span class="title" :class="{
               'title-web': !isPlatform('android'),
               'title-mob': isPlatform('android'),
             }">
               {{ item.title }}
             </span>
 
-            <span :class="{
+            <span class="body" :class="{
               'body-web': !isPlatform('android'),
               'body-mob': isPlatform('android'),
             }">
@@ -74,6 +74,7 @@ const props = defineProps<{
 const htmlTagsRegex = /(<([^>]+)>)/ig;
 const item = props.item;
 const body = item.body.replace(htmlTagsRegex, '').trim()
+
 
 function itemDragged(event: CustomEvent, id: Number) {
   if (Math.abs(event.detail.ratio) > 0.9) {
@@ -146,12 +147,17 @@ function itemDragged(event: CustomEvent, id: Number) {
   font-size: small;
 }
 
+.title {
+  font-weight: bold;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
 .title-web {
   font-weight: bold;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
   -webkit-box-orient: vertical;
 }
 
@@ -159,24 +165,23 @@ function itemDragged(event: CustomEvent, id: Number) {
   font-weight: bold;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.body {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  font-size: 14px;
 }
 
 .body-web {
-  overflow: hidden;
-  display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 
 .body-mob {
-  overflow: hidden;
-  display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
-  -webkit-box-orient: vertical;
 }
 </style>

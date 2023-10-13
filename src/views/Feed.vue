@@ -17,9 +17,9 @@
       </ion-header>
 
       <div class="container">
-        <ion-list>
-          <div v-for="(item, index) in items">
-            <FeedItem :item="item" />
+        <ion-list ref="listElement">
+          <div id="item" v-for="(item, index) in items" ref="itemElements">
+            <FeedItem :key="index" :item="item" />
             <div class="spacer" v-if="index < items.length - 1"></div>
           </div>
         </ion-list>
@@ -29,7 +29,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref, toRaw } from 'vue'
+import type { Ref } from 'vue'
 import {
   IonButtons,
   IonContent,
@@ -40,7 +41,7 @@ import {
   IonToolbar,
   IonList,
 } from '@ionic/vue';
-import { useFeedsStore, MappedItem } from '../store'
+import { useFeedsStore } from '../store'
 import { useRoute } from 'vue-router';
 import FeedItem from '../components/FeedItem.vue';
 
@@ -62,8 +63,32 @@ const items = computed(() => {
   return []
 })
 
+const itemElements = ref([]);
+const listElement = ref();
+
+onMounted(() => {
+  console.log(listElement.value.$el)
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry: any) => {
+      if (entry.isIntersecting) {
+        console.log("intersected")
+      } else {
+        console.log("did not")
+      }
+    });
+  }, { root: listElement.value.$el });
+
+  const itemsselec = listElement.value.$el.querySelectorAll("#item")
+  console.log(itemsselec)
+
+  for (const element of itemsselec) {
+    console.log(element)
+    observer.observe(element.$el);
+  }
+})
+
 function handleScroll(ev: CustomEvent) {
-  console.log('scroll', JSON.stringify(ev.detail));
+  // console.log('scroll', JSON.stringify(ev.detail));
 }
 
 function itemDragged(event: CustomEvent, id: Number) {
