@@ -13,7 +13,7 @@
     "android-sync": "cap sync android",
     "android-open": "cap open android",
     "android-run": "cap run android",
-    "android-reload": "cap run android -l"
+    "android-reload": "cap run android -l --ssl"
   },
   "dependencies": {
     "@capacitor/android": "^5.4.0",

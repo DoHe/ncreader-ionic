@@ -56,6 +56,8 @@ import {
   IonImg,
   IonRouterOutlet,
   useBackButton,
+  IonAccordion,
+  IonAccordionGroup,
 } from '@ionic/vue';
 import type { Animation } from '@ionic/vue';
 import { watch, ref, onMounted, computed, ComputedRef } from 'vue';
