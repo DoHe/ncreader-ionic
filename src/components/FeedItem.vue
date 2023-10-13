@@ -13,6 +13,7 @@
             <span class="title" :class="{
               'title-web': !isPlatform('android'),
               'title-mob': isPlatform('android'),
+              'title-unread': item.unread,
             }">
               {{ item.title }}
             </span>
@@ -20,6 +21,7 @@
             <span class="body" :class="{
               'body-web': !isPlatform('android'),
               'body-mob': isPlatform('android'),
+              'body-read': !item.unread,
             }">
               {{ body }}
             </span>
@@ -148,10 +150,13 @@ function itemDragged(event: CustomEvent, id: Number) {
 }
 
 .title {
-  font-weight: bold;
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+}
+
+.title-unread {
+  font-weight: bold;
 }
 
 .title-web {
@@ -173,6 +178,10 @@ function itemDragged(event: CustomEvent, id: Number) {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   font-size: 14px;
+}
+
+.body-read {
+  color: var(--ion-color-medium);
 }
 
 .body-web {

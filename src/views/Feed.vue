@@ -18,7 +18,7 @@
 
       <div class="container">
         <ion-list ref="listElement">
-          <div id="item" v-for="(item, index) in items" ref="itemElements">
+          <div id="item" v-for="(item, index) in items" ref="itemElements" :data-title="item.title">
             <FeedItem :key="index" :item="item" />
             <div class="spacer" v-if="index < items.length - 1"></div>
           </div>
@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, toRaw } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import type { Ref } from 'vue'
 import {
   IonButtons,
@@ -50,9 +50,9 @@ const store = useFeedsStore();
 
 const items = computed(() => {
   if (route.params.type === 'folder') {
-    return store.getItemsForFolder(route.params.id)
+    return store.getItemsForFolder(route.params.id).filter(item => item.unread)
   } else if (route.params.type === 'feed') {
-    return store.getItemsForFeed(route.params.id)
+    return store.getItemsForFeed(route.params.id).filter(item => item.unread)
   } else if (route.params.type === 'special') {
     if (route.params.name === 'Starred') {
       return store.getStarredItems
@@ -66,24 +66,28 @@ const items = computed(() => {
 const itemElements = ref([]);
 const listElement = ref();
 
-onMounted(() => {
-  console.log(listElement.value.$el)
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry: any) => {
-      if (entry.isIntersecting) {
-        console.log("intersected")
-      } else {
-        console.log("did not")
-      }
-    });
-  }, { root: listElement.value.$el });
 
-  const itemsselec = listElement.value.$el.querySelectorAll("#item")
-  console.log(itemsselec)
+watchEffect(() => {
+  if (itemElements.value && itemElements.value.length) {
+    console.log('has length')
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry: any) => {
+        if (entry.isIntersecting) {
+          console.log("became visible:")
+          console.log(entry.target.dataset.title)
+        } else {
+          console.log("became invisble:")
+          console.log(entry.target.dataset.title)
 
-  for (const element of itemsselec) {
-    console.log(element)
-    observer.observe(element.$el);
+        }
+      });
+    }, { root: document });
+
+    for (const element of itemElements.value) {
+      console.log(element)
+      observer.observe(element);
+    }
+
   }
 })
 

@@ -23,6 +23,7 @@
               <ion-item slot="header" @click="(event) => headerClicked(event, page.url)" router-direction="root"
                 lines="none" :detail="false" class="hydrated" :class="{ selected: selectedPath === page.url }">
                 <ion-icon aria-hidden="true" slot="start" :ios="page.iosIcon" :md="page.mdIcon"></ion-icon>
+                <ion-badge slot="end">{{ page.unreadCount }}</ion-badge>
                 <ion-label>{{ page.title }}</ion-label>
               </ion-item>
               <ion-list slot="content">
@@ -31,6 +32,7 @@
                   :class="{ selected: selectedPath === feedPath(feed) }" lines="none" :detail="false">
                   <ion-img :src="feed.faviconLink" class="feed-icon" aria-hidden="true" slot="start"></ion-img>
                   <ion-label>{{ feed.title }}</ion-label>
+                  <ion-badge slot="end">{{ feed.unreadCount }}</ion-badge>
                 </ion-item>
               </ion-list>
             </ion-accordion>
@@ -58,6 +60,7 @@ import {
   useBackButton,
   IonAccordion,
   IonAccordionGroup,
+  IonBadge,
 } from '@ionic/vue';
 import type { Animation } from '@ionic/vue';
 import { watch, ref, onMounted, computed, ComputedRef } from 'vue';
@@ -83,6 +86,7 @@ type SpecialPage = {
   url: string,
   iosIcon: string,
   mdIcon: string,
+  unreadCount: number
 }
 
 type FolderPageFields = {
@@ -147,41 +151,40 @@ const specialPages: Array<SpecialPage> = [
     url: `/feed/special/Starred/0`,
     iosIcon: starOutline,
     mdIcon: star,
+    unreadCount: 0,
   },
   {
     title: 'Unread',
     url: `/feed/special/Unread/0`,
     iosIcon: eyeOutline,
     mdIcon: eye,
+    unreadCount: 0,
   }
 ]
 const folderPages: ComputedRef<Array<FolderPage>> = computed(() => feedsStore.folders.map(folderData => {
   const items = feedsStore.items;
-  const feedsForFolder = feedsStore.feeds.filter(feed => {
-    if (feed.folderId !== folderData.id) {
-      return false;
-    }
-    let hasUnread = false;
+  const feedsForFolder = feedsStore.feeds.map(feed => {
+    let unreadCount = 0;
     for (const item of items) {
       if (item.unread && item.feedId === feed.id) {
-        hasUnread = true;
-        break;
+        unreadCount += 1;
       }
     }
-    return hasUnread;
-  });
+    return { ...feed, unreadCount };
+  }).filter(feed => (feed.folderId === folderData.id) && feed.unreadCount);
   return {
     title: folderData.name,
     url: `/feed/folder/${folderData.name}/${folderData.id}`,
     iosIcon: folderOutline,
     mdIcon: folder,
     feeds: feedsForFolder,
+    unreadCount: feedsForFolder.reduce((acc, val) => acc + val.unreadCount, 0)
   }
 }).filter(folderPage => folderPage.feeds.length > 0))
 
 function headerClicked(event: CustomEvent, path: string) {
   // @ts-ignore
-  if (event.target.slot !== 'end') {
+  if (!(event.target.slot === 'end' && event.target.nodeName === 'ION-ICON')) {
     selectedPath.value = path;
     router.replace(path);
     menu.value.$el.close();

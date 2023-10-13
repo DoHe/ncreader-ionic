@@ -92,13 +92,13 @@ async function sync({ mocked, startup = false }: { mocked: boolean, startup: boo
         }
       }
       newData.items.items = newData.items.items.filter((item: Item) => item.unread || item.starred);
-      sortData(newData);
       newData.folders.folders = newData.folders.folders.length
         ? newData.folders.folders
         : data.folders.folders;
       newData.feeds.feeds = newData.feeds.feeds.length
         ? newData.feeds.feeds
         : data.feeds.feeds;
+      sortData(newData);
       storage.set(syncDataKey, JSON.stringify(newData));
       setDataInStore(feedsStore, newData);
     } else {
