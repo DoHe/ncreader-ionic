@@ -9,7 +9,8 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true" :scroll-events="true" @ionScroll="handleScroll($event)" ref="content">
+    <ion-content :fullscreen="true" :scroll-events="true" @ionScroll="handleScroll" @ionScrollEnd="handleScrollEnd"
+      @wheel="handleMouseWheel" ref="content">
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">{{ $route.params.name }}</ion-title>
@@ -18,9 +19,8 @@
 
       <div class="container">
         <ion-list>
-          <div id="item" v-for="(item, index) in items" ref="itemElements" :data-title="item.title">
+          <div id="item" v-for="(item, index) in items" ref="itemElements" :data-id="item.id">
             <FeedItem :key="index" :item="item" />
-            <div class="spacer" v-if="index < items.length - 1"></div>
           </div>
         </ion-list>
       </div>
@@ -49,9 +49,9 @@ const store = useFeedsStore();
 
 const items = computed(() => {
   if (route.params.type === 'folder') {
-    return store.getItemsForFolder(route.params.id).filter(item => item.unread)
+    return store.getItemsForFolder(route.params.id)
   } else if (route.params.type === 'feed') {
-    return store.getItemsForFeed(route.params.id).filter(item => item.unread)
+    return store.getItemsForFeed(route.params.id)
   } else if (route.params.type === 'special') {
     if (route.params.name === 'Starred') {
       return store.getStarredItems
@@ -72,9 +72,7 @@ watchEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry: any) => {
         if (!entry.isIntersecting && scrollDirection === 1) {
-          //console.log("mark read:")
-          //console.log(entry.target.dataset.title)
-
+          markRead(parseInt(entry.target.dataset.id, 10))
         }
       });
     }, { root: document });
@@ -86,23 +84,43 @@ watchEffect(() => {
   }
 })
 
-let lastTimeout: ReturnType<typeof setTimeout>;
+function markRead(id: number) {
+  console.log('mark read: ' + id)
+  store.markRead(id)
+}
 
-async function handleScroll(ev: CustomEvent) {
-  scrollDirection = Math.sign(ev.detail.deltaY);
-  if (lastTimeout) {
-    clearTimeout(lastTimeout)
+function handleScrollToBottom() {
+  console.log('mark all read')
+  for (const item of items.value) {
+    markRead(item.id);
   }
+}
+
+async function handleScroll(event: CustomEvent) {
+  scrollDirection = Math.sign(event.detail.deltaY);
   if (scrollDirection === 1) {
     // @ts-ignore
-    const scrollElement = await ev.target.getScrollElement()
+    const scrollElement = await event.target.getScrollElement()
 
     const scrollHeight = scrollElement.scrollHeight - scrollElement.clientHeight;
     if (scrollHeight - scrollElement.scrollTop < 10) {
-      console.log(`Scrolled to bottom`);
+      handleScrollToBottom()
     }
   }
-  lastTimeout = setTimeout(() => scrollDirection = 0, 200)
+}
+
+function handleScrollEnd() {
+  scrollDirection = 0;
+}
+
+async function handleMouseWheel(event: WheelEvent) {
+  if (event.deltaY > 0) {
+    // @ts-ignore
+    const scrollElement = await content.value.$el.getScrollElement()
+    if (scrollElement.scrollHeight <= scrollElement.clientHeight) {
+      handleScrollToBottom()
+    }
+  }
 }
 
 function itemDragged(event: CustomEvent, id: Number) {

@@ -93,6 +93,9 @@ export const useFeedsStore = defineStore('feeds', {
     },
     setSyncing(syncing: boolean) {
       this.syncing = syncing
+    },
+    markRead(id: number) {
+      this.items = this.items.map(item => item.id === id ? { ...item, unread: false } : item)
     }
   },
   getters: {

@@ -6,7 +6,7 @@
       </ion-item-option>
     </ion-item-options>
 
-    <ion-item>
+    <ion-item class="item">
       <div class="vertical-container">
         <div class="top">
           <div class="left-side">
@@ -14,6 +14,7 @@
               'title-web': !isPlatform('android'),
               'title-mob': isPlatform('android'),
               'title-unread': item.unread,
+              'title-read': !item.unread,
             }">
               {{ item.title }}
             </span>
@@ -69,13 +70,14 @@ import {
 } from 'ionicons/icons';
 import moment from 'moment';
 import { MappedItem } from '../store';
+import { toRefs } from 'vue';
 
 const props = defineProps<{
   item: MappedItem
 }>()
 const htmlTagsRegex = /(<([^>]+)>)/ig;
-const item = props.item;
-const body = item.body.replace(htmlTagsRegex, '').trim()
+const { item } = toRefs(props);
+const body = item.value.body.replace(htmlTagsRegex, '').trim()
 
 
 function itemDragged(event: CustomEvent, id: Number) {
@@ -94,11 +96,16 @@ function itemDragged(event: CustomEvent, id: Number) {
 </script>
 
 <style scoped>
+.item {
+  padding-bottom: 10px;
+}
+
 .vertical-container {
   display: flex;
   flex-direction: column;
   width: 100%;
   gap: 10px;
+  padding-bottom: 10px;
 }
 
 .top {
@@ -159,15 +166,17 @@ function itemDragged(event: CustomEvent, id: Number) {
   font-weight: bold;
 }
 
+.title-read {
+  color: var(--ion-color-medium);
+}
+
 .title-web {
-  font-weight: bold;
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
 }
 
 .title-mob {
-  font-weight: bold;
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
